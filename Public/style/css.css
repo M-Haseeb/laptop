@@ -483,6 +483,10 @@ margin-Left: 10% !important; /* Adjust the value as needed */
      .loader1,.loader2{
         display:none;
      }
+
+     .mylogo{
+        font-size: 18px !important;
+     }
      
      .details{
         flex-direction: column;

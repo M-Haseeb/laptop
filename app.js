@@ -2,6 +2,7 @@ const express=require("express");
 const flash=require("connect-flash");
 const sessions=require("express-session");
 const mongoose=require("mongoose");
+
 const passport=require("passport");
 const dotenv=require("dotenv");
 const ejs=require("ejs");
@@ -10,13 +11,13 @@ require("./Config/strategy")(passport);
 
 
 //setting environment
-dotenv.config({path:'./config/config.env'});
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 
 //setting database
 db=require("./Config/db");
 db();
-
+  
 
 //express middlewares
 
@@ -34,9 +35,15 @@ app.use(sessions({
     resave:false,
     saveUninitialized:false
 }));
+
+
+
+
 app.use('/Public/assets', express.static('Public'));
 app.use(passport.initialize());
 app.use(passport.session());
+
+
 
 //flash messages
 

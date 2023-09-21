@@ -54,7 +54,7 @@ router.get("/",(req,res)=>{
  }
  },(req,res,next)=>{
      passport.authenticate('local',{
-         successRedirect:'/home',
+         successRedirect:'/logging_process_customer',
          failureRedirect:"/login",
          failureFlash:true
      })
@@ -90,14 +90,63 @@ console.log(err);
 }
 },(req,res,next)=>{
 passport.authenticate('admin',{
-    successRedirect:'/dashboard',
+    successRedirect:'/logging_process',
     failureRedirect:"/admin_login",
     failureFlash:true
 })
 (req,res,next)
+
 })
 
+//login actvity customer
 
+router.get("/logging_process_customer",user_auth,async(req,res)=>{
+ 
+  try {
+    await User.findById(req.user).then(async(user)=>{
+        if(user){
+            const Customer= new CustomerActivityLog({
+                userId: req.user,
+                username:user.username, 
+                action:'login',
+                activities:[],
+                ipAddress: req.ip,
+              });
+              await Customer.save();
+            
+              res.redirect("/home");
+        }
+    })
+} catch (error) {
+  console.error('Error logging activity:', error);
+  
+}
+})
+
+//login_activity_admin
+
+router.get("/logging_process",user_auth,async(req,res)=>{
+ 
+  try {
+    await Admin.findById(req.user).then(async(admin)=>{
+        if(admin){
+            const Admin= new ActivityLog({
+                userId: req.user,
+                username:admin.username, 
+                action:'login',
+                activities:[],
+                ipAddress: req.ip,
+              });
+              await Admin.save();
+            
+              res.redirect("/dashboard");
+        }
+    })
+} catch (error) {
+  console.error('Error logging activity:', error);
+  
+}
+})
 
 
  router.get("/signup",(req,res)=>{
@@ -145,6 +194,22 @@ passport.authenticate('admin',{
 
 
  router.get("/dashboard",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -159,30 +224,7 @@ passport.authenticate('admin',{
      }catch(err){
         console.log(err);
      }
- },
- async (req, res, next) => {
-    try {
-        await Admin.findById(req.user).then(async(admin)=>{
-            if(admin){
-                const activity = new ActivityLog({
-                    userId: req.user,
-                    username:admin.username, 
-                    action:'login',
-                    activities:[],
-                    ipAddress: req.ip,
-                  });
-                  await activity.save();
-                
-                  next();
-            }
-        })
-    } catch (error) {
-      console.error('Error logging activity:', error);
-      next(error);
-    }
-  }
- 
- ,async (req,res)=>{
+ },async (req,res)=>{
     try{
    const data=await Admin.findById(req.user).then((user)=>{
         if(user){
@@ -206,26 +248,22 @@ passport.authenticate('admin',{
 }
 })
 
-router.get("/home",user_auth, async (req, res, next) => {
-    try {
-        await User.findById(req.user).then(async(user)=>{
-            if(user){
-                const Customer= new CustomerActivityLog({
-                    userId: req.user,
-                    username:user.username, 
-                    action:'login',
-                    activities:[],
-                    ipAddress: req.ip,
-                  });
-                  await Customer.save();
-                
-                  next();
-            }
-        })
-    } catch (error) {
-      console.error('Error logging activity:', error);
-      next(error);
+router.get("/home",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
     }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
 },async(req,res)=>{
     const id=req.user;
     try{
@@ -257,7 +295,23 @@ router.get("/home",user_auth, async (req, res, next) => {
     
 //getting product by its id
 
-router.get("/product/:id",user_auth,async(req,res)=>{
+router.get("/product/:id",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async(req,res)=>{
 
     try{
 
@@ -277,7 +331,23 @@ router.get("/product/:id",user_auth,async(req,res)=>{
 })
 
 
-router.get("/addcart/:id", user_auth, async (req, res) => {
+router.get("/addcart/:id", user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+}, async (req, res) => {
     try {
       const userId = req.user;
       const id = req.params.id;
@@ -326,7 +396,49 @@ router.get("/addcart/:id", user_auth, async (req, res) => {
     }
   });
   
-router.get("/cart",user_auth,async(req,res)=>{
+//infinite scroller
+router.get('/products', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // Get the requested page or default to 1
+    const perPage = 3; // Number of products per page
+    const skip = (page - 1) * perPage; // Calculate the number of products to skip
+
+    // Query the database to fetch products for the current page
+    const products = await Product.find()
+      .skip(skip)
+      .limit(perPage)
+      .exec();
+
+    // Send the products as a JSON response
+    res.json(products);
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
+router.get("/cart",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async(req,res)=>{
     try{
 const id =req.user;
 const users =await Cart.find({userId:id}).sort({ _id: -1 }).limit(20)
@@ -374,7 +486,23 @@ router.get("/cancel/:id",user_auth,async(req,res)=>{
 
 //increment
 
-router.get('/increase/:id', user_auth, async (req, res) => {
+router.get('/increase/:id', user_auth, async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async (req, res) => {
     try {
       const id = req.params.id;
   
@@ -427,7 +555,23 @@ router.get('/increase/:id', user_auth, async (req, res) => {
   });
   
 //decrement
-router.get('/decrease/:id', user_auth, async (req, res) => {
+router.get('/decrease/:id', user_auth, async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async (req, res) => {
     try {
       const id = req.params.id;
   
@@ -479,7 +623,23 @@ router.get('/decrease/:id', user_auth, async (req, res) => {
     }
   });
 
-  router.post('/create-checkout-session', user_auth, async (req, res) => {
+  router.post('/create-checkout-session', user_auth, async(req,res,next)=>{
+    try{
+    await User.findById(req.user).then(user=>{
+      if(user){
+        next();
+      }
+      else{
+        res.status=400;
+        res.json("UnAuthhorize");
+      }
+    })
+  
+  
+    }catch(err){
+      console.log(err);
+    }
+  },async (req, res) => {
     try {
       const amount = req.body.items[0].amount;
       const session = await stripe.checkout.sessions.create({
@@ -499,7 +659,7 @@ router.get('/decrease/:id', user_auth, async (req, res) => {
             quantity: 1,
           },
         ],
-        success_url: `${process.env.URL}/home`,
+        success_url: `${process.env.URL}home`,
         cancel_url: `${process.env.URL}/cart`,
       });
   
@@ -676,17 +836,24 @@ router.post("/update-password", async (req, res) => {
 })
 
 //logout
-const logoutMiddleware = (req, res, next) => {
+const logoutMiddleware = (req, res) => {
+  if(req.isAuthenticated()){
     req.logout(()=>{
-        req.flash("success_msg","Successfully Logged Out")
-        res.redirect('/login');
-    });
-    // Redirect user to login page after logging out
-  }
+      req.flash("success_msg","Successfully Logged Out")
+      res.redirect('/login');
 
+  })}
+  else{
+    req.flash("error_msg","Login please")
+    res.redirect('/login');}
+      // Redirect user to login page after logging out
+    }
+  
+  
   //admin-logout
   const logoutAdmin = (req, res, next) => {
-    req.logout(()=>{
+    
+      req.logout(()=>{
         req.flash("success_msg","Successfully Logged Out")
         res.redirect('/admin_login');
     });
@@ -694,7 +861,23 @@ const logoutMiddleware = (req, res, next) => {
   }
 
 
-router.get("/logout",async (req, res, next) => {
+router.get("/logout",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async (req, res, next) => {
     try {
         await User.findById(req.user).then(async(user)=>{
             if(user){
@@ -705,8 +888,15 @@ router.get("/logout",async (req, res, next) => {
                     ipAddress: req.ip,
                   });
                   await customer.save();
-                  next();
-            }
+                }
+                else{
+                  req.flash("error_msg","Login please")
+                  res.redirect('/login');
+                }
+                }).catch(err=>{
+          console.log(err);
+        }).finally(()=>{
+next()
         })
     } catch (error) {
       console.error('Error logging activity:', error);
@@ -722,7 +912,23 @@ router.get("/logout",async (req, res, next) => {
 //@payments data
 //daily
 
-router.get("/admin_logout",async (req, res, next) => {
+router.get("/admin_logout",user_auth,async(req,res,next)=>{
+  try{
+  await Admin.findById(req.user).then(admin=>{
+    if(admin){
+      next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async (req, res, next) => {
     try {
         await Admin.findById(req.user).then(async(admin)=>{
             if(admin){
@@ -735,6 +941,14 @@ router.get("/admin_logout",async (req, res, next) => {
                   await activity.save();
                   next();
             }
+            else{
+              
+                req.flash("error_msg","Login please")
+                res.redirect('/login');
+              }
+            
+        }).catch(err=>{
+          console.log(err);
         })
     } catch (error) {
       console.error('Error logging activity:', error);
@@ -800,7 +1014,7 @@ router.get("/total_revenue",async(req,res) =>{
 //add product
 
 
-router.get("/dashboard/add_product",async(req,res)=>{
+router.get("/dashboard/add_product",user_auth,async(req,res)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(admin=>{
@@ -1100,6 +1314,22 @@ await Admin.findById(id).then(async(user)=>{
 //add admin @super admin
 
 router.get("/dashboard/add_admin",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -1139,6 +1369,22 @@ router.get("/dashboard/add_admin",user_auth,async(req,res,next)=>{
 
 
 router.post('/dashboard/add_admin', user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -1202,6 +1448,22 @@ router.post('/dashboard/add_admin', user_auth,async(req,res,next)=>{
 
   router.get('/dashboard/remove_admin/:id',user_auth,async(req,res,next)=>{
     try{
+      await Admin.findById(req.user).then(admin=>{
+        if(admin){
+          next();
+        }
+        else{
+          
+          res.json("customer user not authorize");
+       
+          
+        }
+      })
+    }catch(err){
+  console.log(err);
+    }
+  },async(req,res,next)=>{
+    try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
          if(user.isSuper==true){
@@ -1237,6 +1499,22 @@ router.post('/dashboard/add_admin', user_auth,async(req,res,next)=>{
 //edit admin @super admin
 
 router.get("/dashboard/edit_admin/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -1275,6 +1553,22 @@ router.get("/dashboard/edit_admin/:id",user_auth,async(req,res,next)=>{
 //edit admin @super admin
 
 router.post('/dashboard/edit_admin/:id',user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -1342,6 +1636,22 @@ router.post('/dashboard/edit_admin/:id',user_auth,async(req,res,next)=>{
 
 
 router.get("/dashboard/activities",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
         await Admin.findById(id).then(user=>{
@@ -1384,6 +1694,22 @@ router.get("/dashboard/activities",user_auth,async(req,res,next)=>{
 //sessions activities details
 
 router.get("/dashboard/activities/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
        
         const id=req.user;
@@ -1395,6 +1721,8 @@ router.get("/dashboard/activities/:id",user_auth,async(req,res,next)=>{
             else{
                 res.redirect("/dashboard/add_product");
             }
+        }).catch(err=>{
+          console.log(err)
         })
      }catch(err){
         console.log(err);
@@ -1417,17 +1745,204 @@ router.get("/dashboard/activities/:id",user_auth,async(req,res,next)=>{
 }catch(err){
     console.log(err);
 }
+})
+
+//customer Activites
+router.get("/dashboard/customer-activities",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
         
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+  try{
+      const id=req.user;
+      await Admin.findById(id).then(user=>{
+       if(user.isSuper==true){
+           next()
+       }   
+       
+          else{
+              res.redirect("/dashboard/add_product");
+          }
+      })
+   }catch(err){
+      console.log(err);
+   }
+},async(req,res)=>{
+
+try{
+ const id=req.user;
+ await Admin.findById(id).then(async(admin)=>{
+  if(admin){
+      await User.find({}).sort().limit(100).then(users=>{
+          if(users){
+              res.render("user_activities.ejs",{
+                  users:users,
+                  user:admin
+              })
+          }
+         }).catch(err=>{
+          console.log(err)
+        })
+      
+  }
+ })
+
+}catch(err){
+  console.log(err);
+}
+
+})
+
+
+//sessions activities details
+
+router.get("/dashboard/customer-activities/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+  try{
+     
+      const id=req.user;
+      
+      await Admin.findById(id).then(user=>{
+       if(user.isSuper==true){
+           next()
+       }   
+       
+          else{
+              res.redirect("/dashboard/add_product");
+          }
+      }).catch(err=>{
+        console.log(err)
+      })
+   }catch(err){
+      console.log(err);
+   }
+},async(req,res)=>{
+  try{
+  const id=req.user;
+  const user=await Admin.findById(req.user)
+  const documents = await CustomerActivityLog.find({ userId: req.params.id }).sort({ timestamp: -1 }).exec();
+   if(documents){
     
+ res.render("user_sessions",{
+  user:user,
+   docs:documents
+ })       
+
+ }
+  
+
+ 
+}catch(err){
+  console.log(err);
+}
+      
+
 
 })
  
+ 
+router.get("/dashboard/customer-activities/actions/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+  try{
+      const id=req.user;
+      await Admin.findById(id).then(user=>{
+       if(user.isSuper==true){
+           next()
+       }   
+       
+          else{
+              res.redirect("/dashboard/add_product");
+          }
+      }).catch(err=>{
+        console.log(err)
+      })
+   }catch(err){
+      console.log(err);
+   }
+},async(req,res)=>{
+
+try{
+await CustomerActivityLog.findById(req.params.id).then(activity=>{
+  if(activity){
+      res.json(activity);
+  }
+}).catch(err=>{
+  console.log(err)
+})
+
+}catch(err){
+  console.log(err);
+}
+
+})
+
+
+
 
 //getting actions
 
 router.get("/dashboard/activities/actions/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
     try{
         const id=req.user;
+        
         await Admin.findById(id).then(user=>{
          if(user.isSuper==true){
              next()
@@ -1436,6 +1951,8 @@ router.get("/dashboard/activities/actions/:id",user_auth,async(req,res,next)=>{
             else{
                 res.redirect("/dashboard/add_product");
             }
+        }).catch(err=>{
+          console.log(err)
         })
      }catch(err){
         console.log(err);
@@ -1447,6 +1964,8 @@ try{
     if(activity){
         res.json(activity);
     }
+  }).catch(err=>{
+    console.log(err)
   })
 
 }catch(err){
@@ -1454,5 +1973,10 @@ try{
 }
 
  })
+
+ 
+ //getting user actions
+
+
 
 module.exports=router;

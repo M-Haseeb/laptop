@@ -27,12 +27,12 @@
     </thead>
 
     <tbody>
-      <% if(admins.length > 0) { %>
-        <% admins.forEach((admin) => { %>
+      <% if(users.length > 0) { %>
+        <% users.forEach((user) => { %>
           <tr>
             
-            <td><%= admin.username %></td>
-            <td><a href="/dashboard/activities/<%=admin.id%>">Activities</a></td>
+            <td><%= user.username %></td>
+            <td><a href="/dashboard/customer-activities/<%=user._id%>">Activities</a></td>
             
     
           </tr>

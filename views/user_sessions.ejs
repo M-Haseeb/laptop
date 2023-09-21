@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/style/css.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    
+    <%-include("./partials/navbar.ejs")%>
+
+<div class="container">
+    
+  <table class="highlight white" style="color: black !important; ">
+    <thead>
+      <tr>
+        
+          <th>IP Address </th>
+          <th>Action</th>
+          <th>Time</th>
+          <th>Activities</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% if(docs.length > 0) { %>
+        <% docs.forEach((doc) => { %>
+          <tr>
+            
+            <td><%= doc.ipAddress %></td>
+            <td><%= doc.action %></td>
+            <td><%= doc.timestamp%></td>
+
+            <td><a class="btn blue session" data-id="<%=doc._id%>">Activities</a></td>
+            
+    
+          </tr>
+          <tr class="new-row"></tr>
+            
+        <% }) %>
+      <% } else { %>
+        <tr><td>No Activity perform</td></tr>
+      <% } %>
+    </tbody>
+
+    
+  </table>
+
+</div>
+
+
+
+
+
+    <!--Scripts-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script> M.AutoInit();
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    var instances = M.FloatingActionButton.init(elems, options);
+  });
+
+
+  document.querySelector("body").addEventListener("click", (e) => {
+    
+      console.log("w")
+        if (e.target.classList.contains("session")) {
+          e.preventDefault()
+            const action = e.target;
+            
+            const action_id = action.getAttribute("data-id");
+
+            fetch("/dashboard/customer-activities/actions/" + action_id, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+            })
+            .then(final => {
+                if (final && final.activities && final.activities.length > 0) {
+                    const clickedRow = action.parentElement.parentElement;
+                    const existingDetailsRow = clickedRow.nextElementSibling;
+
+                    // Check if the existing row is already there
+                    if (existingDetailsRow && existingDetailsRow.classList.contains("details-row")) {
+                        // If it exists, remove it to toggle visibility
+                        existingDetailsRow.remove();
+                    } else {
+                        // Create a new row for details
+                        const newRow = document.createElement('tr');
+                        newRow.className = "details-row";
+                        
+                        // Create an empty cell for the first four columns
+                        newRow.innerHTML = `
+                            <td ></td>
+                            <td></td>
+                            
+                            <td></td> <!-- Placeholder for activities -->
+                        `;
+                        
+                        // Get the cell for activities
+                        const activitiesCell = newRow.querySelector('td:last-child');
+
+                        // Iterate through the activities array and append each activity
+                        final.activities.forEach(activity => {
+                            const activityElement = document.createElement('div');
+                            activityElement.style.border='1px solid rgba(0,0,0,0.3)';
+                            activityElement.style.padding='15px'
+                            activityElement.textContent = activity;
+                            
+                            activitiesCell.appendChild(activityElement);
+                        });
+
+                        // Insert the new row below the clicked row
+                        clickedRow.insertAdjacentElement('afterend', newRow);
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
