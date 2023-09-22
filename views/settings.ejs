@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/style/css.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <%-include("./partials/navbar.ejs")%>
+
+
+    <div class="container">
+
+
+<div class="intro">
+    <div class="admin-pic">
+        <%if(user.img == null || user.img=='undefined'){%>
+            <img src="/assets/admin.jpg" style="object-fit: cover !important;">
+
+            <%}else{%>
+                <img src="<%=user.img%>" style="object-fit: cover !important;">
+                <%}%>
+                
+    </div>
+
+  <div class="admin-intro">
+<h5>Nadeem@gmail.com</h5>
+<h6>Nadeem</h6>
+  </div>
+</div>
+
+
+<h3 style="color:black;">Settings</h3>
+
+<div class="setting">
+
+<div class="username">
+  <p> <i class="fas fa-edit user"></i> Edit Username</p> 
+</div>
+<div class="password">
+    <p> <i class="fas fa-edit pass"></i> Edit Password</p>
+</div>
+
+
+</div>
+
+    <div class="changes">
+
+<div class="edit-user">
+  <form method="post" name="update-username" id="update-user">
+  <input type="text" name="username" placeholder="Username">
+  <button type="submit" class="btn blue">Update</button>
+  </form>
+</div>
+
+<div class="edit-pass">
+  <form method="post" name="update-username" id="update-user">
+  <input type="text" name="old_password" placeholder="Old Password">
+  <input type="text" name="new_password" placeholder="New Password">
+  <button type="submit" class="btn blue">Update</button>
+  </form>
+</div>
+
+</div>
+
+
+</div>
+    
+
+
+
+
+
+    <!--Scripts-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script>
+  M.AutoInit();
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    var instances = M.FloatingActionButton.init(elems, options);
+  });
+  
+</script>
+</body>
+</html>

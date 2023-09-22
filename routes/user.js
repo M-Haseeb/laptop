@@ -1975,8 +1975,59 @@ try{
  })
 
  
- //getting user actions
+//super admin settings
 
+router.get('/dashboard/settings',user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+    try{
+        const id=req.user;
+        
+        await Admin.findById(id).then(user=>{
+         if(user.isSuper==true){
+             next()
+         }   
+         
+            else{
+                res.redirect("/dashboard/add_product");
+            }
+        }).catch(err=>{
+          console.log(err)
+        })
+     }catch(err){
+        console.log(err);
+     }
+ },async(req,res)=>{
+  try{
+   await Admin.findById(req.user).then(user=>{
+    if(user){
+      res.render("settings.ejs",{
+        user:user
+      })
+    }
+    else{
+        res.json("not authorize");
+    }
+   } ) 
+   
+  }catch(err){
+    console.log(err);
+  }
+ })
 
 
 module.exports=router;

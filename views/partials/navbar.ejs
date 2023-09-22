@@ -10,14 +10,18 @@
                 <%if(user.isSuper==true){%>
                   
                 <div class="profile-img">
-                  <img src="/assets/admin.jpg" style="object-fit:cover  !important;">
+                  <%if(user.img == null || user.img=='undefined'){%>
+                    <img src="/assets/admin.jpg" style="object-fit: cover !important;">
+                    <%}else{%>
+                        <img src="<%=user.img%>" style="object-fit: cover !important;">
+                        <%}%>
                  </div>
                  <%}else{%>
                   <div class="profile-img" >
                     <img src="/assets/normal.png" style="object-fit:fill !important;">
                    </div>
               <%}%>
-                  <p style="color: white;font-weight: 600;letter-spacing:1px;font-size:22px;text-align:center;"><%=user.username%></p>
+                  <p class="side-name" style="color: white;font-weight: 600;"><%=user.username%></p>
                        
                           
                     
@@ -50,7 +54,7 @@
                    <%}else{%>
                     <li><a href="javascript:void(0)" class="blue-text active"><i class="fa fa-sync blue-text"></i>Customer Activities</a></li>
                    <%}%>
-                <li><a href="/admin_logout/settings" class="blue-text"><i class="fa fa-cog blue-text" aria-hidden="true"></i>Settings</a></li>
+                <li><a href="/dashboard/settings" class="blue-text"><i class="fa fa-cog blue-text" aria-hidden="true"></i>Settings</a></li>
                 <li><a href="/admin_logout" class="blue-text"><i class="fa fa-sign-out blue-text" aria-hidden="true"></i>Logout</a></li>
                 
               </ul>
