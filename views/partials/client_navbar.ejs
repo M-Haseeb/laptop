@@ -1,0 +1,48 @@
+<div class="navbar-fixed" style="z-index: 1020 !important;">
+    <nav class="purple darken-4">
+      <div class="nav-wrapper container" style="display: flex; justify-content: space-between !important;">
+        <div style="display: flex; align-items: center;">
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger show-on-large"><i class="fas fa-bars"></i></a>
+          <a href="#" class="brand-logo center mylogo">E-commerce</a>
+        </div>
+  
+        <div style="display: flex; align-items: center;">
+          <% if (carts.length >= 1) { %>
+            <a href="/cart" style="font-size: 15px;" class="text-blue">
+              <i class="text-blue fas fa-shopping-cart">
+                <span class="new badge red" style="font-size: 9px;letter-spacing: 0.5px !important;"><%= carts.length %></span>
+              </i>
+            </a>
+          <% } else { %>
+            <a href="/cart" style="font-size: 22px; margin-right: 10px; cursor: pointer;" class="text-blue">
+              <i class="cart text-blue fas fa-shopping-cart"></i>
+            </a>
+          <% } %>
+          
+          <a href="/logout" class="text-blue" style="font-size: 22px;padding-left: 10px;"><i class="fas fa-sign-out"></i></a>
+        </div>
+      </div>
+    </nav>
+  
+    <ul class="sidenav black" id="mobile-demo">
+      <li class="myli">
+        <div class="my-view" style="border-bottom: 2px solid white !important;">
+          <% if (user.img == undefined || user.img == null) { %>
+            <div class="profile-img">
+              <img src="/assets/normal.png">
+            </div>
+          <% } else { %>
+            <div class="profile-img">
+              <img src="<%= user.img %>">
+            </div>
+          <% } %>
+          <p style="color: white;margin-left: 30%;"><%= user.username %></p>
+        </div>
+      </li>
+      <li><a href="/home" class="blue-text active"><i class="fa fa-user blue-text"></i>Home</a></li>
+      <li><a href="/Inbox" class="blue-text"><i class="fa fa-rss blue-text"></i>Inbox</a></li>
+      <li><a href="/dashboard/keys" class="blue-text"><i class="fa fa-search blue-text"></i>Search</a></li>
+      <li><a href="/logout" class="blue-text"><i class="fa fa-sign-out blue-text" aria-hidden="true"></i>Logout</a></li>
+    </ul>
+  </div>
+  

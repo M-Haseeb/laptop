@@ -27,7 +27,7 @@ router.get("/",(req,res)=>{
     res.render("login.ejs")
     
  });
- router.get("/login",(req,res)=>{
+ router.get("/login",(req,res)=>{ 
      res.render("login");
  });
  
@@ -270,13 +270,18 @@ router.get("/home",user_auth,async(req,res,next)=>{
         const users =await Cart.find({userId:id}).sort({ _id: -1 }).limit(20)
         .then(async(user)=>{
          if(user){
-             await Product.find({}).sort({_id:-1}).limit(100).then(data=>{
+             await Product.find({}).sort({_id:-1}).limit(100).then(async(data)=>{
                 if(data){
-                    console.log(data)
-                    res.render("home",{
-                        data:data,
-                        carts:user
+                    await User.findById(req.user).then(final=>{
+                      if(final){
+                        res.render("home",{
+                          data:data,
+                          carts:user,
+                          user:final
+                      })
+                      }
                     })
+                    
                 }
             })
 
@@ -2029,5 +2034,52 @@ console.log(err);
   }
  })
 
+//inbox client side
+
+router.get("/inbox",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},async(req,res)=>{
+
+  try{
+      const users =await Cart.find({userId:req.user}).sort({ _id: -1 }).limit(20)
+      .then(async(user)=>{
+       if(user){
+           
+                  await User.findById(req.user).then(final=>{
+                    if(final){
+                      res.render("inbox.ejs",{
+                        
+                        carts:user,
+                        user:final
+                    })
+                    }
+                  })
+                  
+              }
+          })
+
+           
+       
+  }catch(err){
+      console.log(err);
+  }
+
+
+  
+})
 
 module.exports=router;

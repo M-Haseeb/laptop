@@ -464,6 +464,13 @@ margin-Left: 10% !important; /* Adjust the value as needed */
     color:black;
 }
 
+.sidenav li:hover{
+background-color: white !important;
+
+}
+.sidenav .myli:hover{
+    background-color: black !important;
+}
 
 .float{
     position: absolute;
