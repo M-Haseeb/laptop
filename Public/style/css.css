@@ -552,8 +552,71 @@ background-color: white !important;
    
 }
 
+/*inbox*/
+
+.inbox{
+    position: relative;
+    top:20px;
+    width:100%;
+    display: flex;
+    justify-content: center;
+    align-items:center;
+}
+
+.senders{
+position: relative;
+width:30%;
+display: flex;
+height:400px;
+border: 1px solid black;
+overflow-y: auto;
+justify-content: center;
+flex-direction: column;
+align-items: center;
+}
+.sender{
+    position: relative;
+    width: 100%;
+    height: 5%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: black 1px solid;
+    padding:22px;
+}
+.message{
+    position: relative;
+    width:70%;
+    padding:22px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    border: 1px solid black;
+    flex-direction: column;
+}
+.message-image{
+    position: relative;
+    width:30%;
+    height:25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.message-image img{
+    position: relative;
+    width:100%;
+    height: 100%;
+}
 
 
+.authenticator{
+    position: absolute;
+    top:50%;
+    right:50%;
+    transform: translate(50%,-50%);
+    z-index:200;
+}
 
 @media (max-width:860px) {
 .custom-gap {

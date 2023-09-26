@@ -6,9 +6,12 @@ require("../Config/admin_strategy")(passport);
 const mongoose=require("mongoose");
 const Admin=require("../model/admin");
 const ActivityLog=require("../model/activity");
+const speakeasy = require('speakeasy');
 const Token=require("../model/token");
+const Secret=require("../model/secrets");
 const user_auth=require("../helper/user");
 const admin_auth=require("../helper/admin");
+const qr=require("qrcode"); //qr
 const Cart=require("../model/cart");
 const CustomerActivityLog=require("../model/customers_activity");
 const router=express.Router();
@@ -2061,7 +2064,7 @@ next();
            
                   await User.findById(req.user).then(final=>{
                     if(final){
-                      res.render("inbox.ejs",{
+                      res.render("pre-inbox.ejs",{
                         
                         carts:user,
                         user:final
@@ -2081,5 +2084,195 @@ next();
 
   
 })
+
+router.get("/2fa-qrcode",user_auth,async(req,res,next)=>{
+  try{
+  await User.findById(req.user).then(user=>{
+    if(user){
+next();
+    }
+    else{
+      res.status=400;
+      res.json("UnAuthhorize");
+    }
+  })
+
+
+  }catch(err){
+    console.log(err);
+  }
+},
+async(req,res)=>{
+  try{
+    const secret = speakeasy.generateSecret({ length: 20 });
+    console.log(secret);
+    console.log(secret.toString());
+    await User.findById(req.user).then(async(user)=>{
+      if(user){
+        await  Secret.insertMany({userId:req.user,secret:secret,
+          username:user.username,email:user.email}).then(async(user)=>{
+          if(user){
+          res.json("done")
+          }
+          else{
+            res.json({message:"UnAuthorize"})
+          }
+        }).catch(err=>{
+          console.log(err);
+        }).finally(()=>{
+          console.log("ok");
+        })
+      }
+    })
+
+
+    
+  }catch(err){
+    console.log(err);
+  }
+}
+
+)
+
+
+
+
+
+router.get("/dashboard/2fa",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+    try{
+        const id=req.user;
+        await Admin.findById(id).then(user=>{
+         if(user.isSuper==true || user.rights.includes("analytics")){
+             next()
+         }   
+        
+            else{
+                res.redirect("/dashboard/add_product");
+            }
+        })
+     }catch(err){
+        console.log(err);
+     }
+ },async(req,res)=>{
+  try{
+  await Admin.findById(req.user).then(async(admin)=>{
+    if(admin){
+      await Secret.find({}).sort().limit(200).then(users=>{
+        if(users){
+          res.render("2fa",{
+            user:admin,
+            users:users
+          })
+        }
+      })
+    } 
+  })   
+ 
+
+  }catch(err){
+    console.log(err);
+  }
+ })
+
+router.get("/dashboard/qr-code-scan/:id",user_auth,async(req,res,next)=>{
+  try{
+    await Admin.findById(req.user).then(admin=>{
+      if(admin){
+        next();
+      }
+      else{
+        
+        res.json("customer user not authorize");
+     
+        
+      }
+    })
+  }catch(err){
+console.log(err);
+  }
+},async(req,res,next)=>{
+    try{
+        const id=req.user;
+        await Admin.findById(id).then(user=>{
+         if(user.isSuper==true || user.rights.includes("analytics")){
+             next()
+         }   
+        
+            else{
+                res.redirect("/dashboard/add_product");
+            }
+        })
+     }catch(err){
+        console.log(err);
+     }
+ },async (req, res) => {
+  try {
+    // Retrieve the secret from your database based on the user ID
+    const secret = await Secret.findOne({ userId: req.params.id });
+
+    if (!secret) {
+      // Handle the case when the secret is not found
+      return res.status(404).send('Secret not found');
+    }
+
+    // Generate an OTPauth URL (used to create the QR code)
+    const otpauthURL = speakeasy.otpauthURL({
+      secret: secret.secret.base32, // Use the actual field name that stores the secret
+      label: 'YourApp',
+      issuer: 'YourApp',
+    });
+  
+    // Generate the QR code as a data URL
+    qr.toDataURL(otpauthURL, (err, data_url) => {
+      if (err) {
+        console.error('Error generating QR code:', err);
+        res.status(500).send('Error generating QR code');
+        return;
+      }
+
+      // Define the HTML template with the QR code
+      const htmlTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Authenticate user</title>
+        </head>
+        <body style="display:flex;justify-content:center;align:items:center;flex-direction:column;">
+          <h2>Scan the code</h2>
+          
+          
+          <img style="width:35%;height:35%;" src="${data_url}" alt="QR Code">
+          
+          
+          
+        </body>
+        </html>
+      `;
+
+      
+      res.send(htmlTemplate);
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 module.exports=router;
