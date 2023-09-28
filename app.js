@@ -2,7 +2,7 @@ const express=require("express");
 const flash=require("connect-flash");
 const sessions=require("express-session");
 const mongoose=require("mongoose");
-
+const ntpClient = require('ntp-client');
 const passport=require("passport");
 const dotenv=require("dotenv");
 const ejs=require("ejs");
@@ -43,7 +43,26 @@ app.use('/Public/assets', express.static('Public'));
 app.use(passport.initialize());
 app.use(passport.session());
 
+//ntp-client
 
+function synchronizeTime() {
+    ntpClient.getNetworkTime("pool.ntp.org", 123, (err, date) => {
+      if (err) {
+        console.error('Error synchronizing time:', err);
+      } else {
+        // Set the system time to the synchronized time in PKT (GMT +05:00)
+        const syncedTime = new Date(date);
+        const pktTimezoneOffset = 5 * 60; // 5 hours * 60 minutes/hour
+        syncedTime.setMinutes(syncedTime.getMinutes() + pktTimezoneOffset);
+        console.log('Synchronized time (PKT):', syncedTime);
+  
+        // You can use 'syncedTime' as the synchronized time in your application
+      }
+    });
+  }
+  
+  // Call the synchronizeTime function to sync the time
+  synchronizeTime();
 
 //flash messages
 

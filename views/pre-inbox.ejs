@@ -19,9 +19,16 @@
 </head>
 <body style="background-color:cyan;font-family: Roboto Condensed', sans-serif;">
   <%- include("./partials/client_navbar.ejs")%>
+  <div class="overlay1"></div>
   <div class="authenticator">
     <button class="btn blue identity">Prove your identity</button>
 </div>
+
+<div class="authenticator-input">
+  <input type="text" class="authenticator-code" placeholder="Enter the code">
+  <button class="btn blue authorize">Submit</button>
+</div>
+
   <div class="overlay"></div>
   <div class="container" style="color:black;filter: blur(14px);">
     
@@ -134,8 +141,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const instances = M.Sidenav.init(elems);
 
 });
+document.querySelector(".overlay1").style.display='flex';
 
-fetch("/2fa-qrcode",{
+document.querySelector(".identity").addEventListener("click",(e)=>{
+  e.preventDefault();
+  fetch("/2fa-qrcode",{
     method:"GET",
     headers:{
         "Content-Type":"application/json"
@@ -144,10 +154,39 @@ fetch("/2fa-qrcode",{
     if(response.ok){
         return response.json();
     }
-}).finally(response=>{
-    if(response){
-        console.log("ok")
+}).then(final=>{
+    if(final=='already requested'){
+        document.querySelector(".authenticator").style.display='none';
+        document.querySelector(".authenticator-input").style.display='flex';
+        document.querySelector(".overlay1").style.display='none'
+        
     }
 })
+
+}
+)
+
+document.querySelector(".authorize").addEventListener("click",(e)=>{
+        e.preventDefault();
+        const code=document.querySelector(".authenticator-code").value;
+        fetch("/code-checker",{
+          method:'POST',
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({code:code})
+        }).then(response=>{
+          if(response.ok){
+            return response.json();
+          }
+
+        }).then(final=>{
+          window.alert(final)
+        })
+       })
+
+
+
+
 
 </script>

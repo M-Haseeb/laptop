@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <link rel="stylesheet" href="/style/css.css">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+           
+          <title>Authenticate user</title>
+        </head>
+        <body style="display:flex;justify-content:center;align:items:center;flex-direction:column;">
+    
+            <a href="/dashboard/2fa" class="set-back"><i class="fas fa-arrow-left"></i></a> 
+         <div class="container">
+            <h2 style="color:black !important;">Scan the code</h2>
+          
+          <div class="scanner" >
+          <img style="width:35%;height:35%;" src="<%=data_url%>" alt="QR Code">
+          <button class="btn red scanned">Scanned</button>
+        </div>
+          </div>
+
+
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+          <script> M.AutoInit();</script>
+<script>
+document.querySelector(".scanned").addEventListener("click",(e)=>{
+    e.preventDefault();
+    fetch("/dashboard/scanned/<%=secret._id%>",{
+        method:'GET',
+        headers:{
+            "Content-Type":"application/json"
+        }
+    }).then(response=>{
+        if(response.ok){
+            return response.json();
+        }
+    }).then(final=>{
+        window.location.href="/dashboard";
+    })
+})
+
+
+
+</script>
+
+        </body>
+
+
+
+        </html>

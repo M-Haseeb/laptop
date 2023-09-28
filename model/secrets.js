@@ -13,6 +13,10 @@ const secretSchema = new mongoose.Schema({
     },
     email:{
         type:String
+    },
+    scanned:{
+        type:Boolean,
+        default:false
     }
 
 
